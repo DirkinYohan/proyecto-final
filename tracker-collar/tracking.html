@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Rastreo en Tiempo Real</title>
-    <!-- VERIFICACIÓN DE AUTENTICACIÓN (Agregado aquí) -->
+    <!-- VERIFICACIÓN DE AUTENTICACIÓN -->
     <script>
         if (new URLSearchParams(window.location.search).get('auth') !== 'true') {
             window.location.href = '/';
@@ -41,36 +41,107 @@
     </div>
 
     <script>
-        // Inicialización básica del mapa
+        // Variables globales
+        let map;
+        let marker;
+        let watchId;
+        const deviceId = "collar1";
+
+        // Función principal cuando el mapa se carga
         function initMap() {
-            const map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 1.200825, lng: -77.280979 },
-                zoom: 15,
-                streetViewControl: false
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 17,
+                mapTypeControl: false,
+                streetViewControl: false,
+                center: { lat: 1.200825, lng: -77.280979 } // Posición inicial
             });
 
-            // Marcador inicial
-            const marker = new google.maps.Marker({
-                position: { lat: 1.200825, lng: -77.280979 },
+            // Marcador con diseño personalizado
+            marker = new google.maps.Marker({
                 map: map,
-                title: 'Collar1'
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 8,
+                    fillColor: "#4285F4",
+                    fillOpacity: 1,
+                    strokeWeight: 2,
+                    strokeColor: "#FFFFFF"
+                }
             });
 
-            console.log('Mapa inicializado correctamente');
+            startRealTimeTracking();
+        }
+
+        // Inicia el seguimiento GPS
+        function startRealTimeTracking() {
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        // Actualiza el mapa
+                        marker.setPosition(pos);
+                        map.panTo(pos);
+                        
+                        // Envía datos al backend
+                        sendToBackend(pos);
+                        
+                        // Muestra precisión en consola
+                        console.log("Precisión:", position.coords.accuracy, "metros");
+                    },
+                    (error) => {
+                        console.error("Error GPS:", error);
+                        document.getElementById('alerts').innerHTML = 
+                            `<div class="access-denied">Error GPS: ${error.message}</div>`;
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 3000,
+                        timeout: 5000
+                    }
+                );
+            } else {
+                document.getElementById('alerts').innerHTML = 
+                    '<div class="access-denied">Tu navegador no soporta geolocalización</div>';
+            }
+        }
+
+        // Envía datos al backend
+        async function sendToBackend(position) {
+            try {
+                const response = await fetch('/api/update-location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        deviceId: deviceId,
+                        lat: position.lat,
+                        lng: position.lng,
+                        authCode: "1234567"
+                    })
+                });
+                
+                if (!response.ok) throw new Error("Error en el servidor");
+            } catch (error) {
+                console.error("Error enviando ubicación:", error);
+            }
         }
 
         // Manejo de errores de API
         window.gm_authFailure = function() {
             document.getElementById('map').innerHTML = 
-                '<div class="access-denied">' +
-                'ERROR: Problema con la API de Google Maps. Verifica tu API Key' +
-                '</div>';
-            console.error('Error en la API de Google Maps');
+                '<div class="access-denied">ERROR: Problema con la API de Google Maps</div>';
         };
+
+        // Detiene el tracking al salir
+        window.addEventListener('beforeunload', () => {
+            if (watchId) navigator.geolocation.clearWatch(watchId);
+        });
     </script>
     
     <!-- Scripts adicionales -->
-    <script src="/js/tracking.js"></script>
     <script src="/js/geofencing.js"></script>
 </body>
 </html>
