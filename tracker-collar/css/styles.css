@@ -1,0 +1,30 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+#map {
+    height: 70vh;
+    width: 100%;
+    border: 1px solid #ccc;
+    margin-top: 20px;
+}
+
+.controls {
+    margin-top: 15px;
+}
+
+button {
+    padding: 10px 15px;
+    background: #4285F4;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#alerts {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 4px;
+}

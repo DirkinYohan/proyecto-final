@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rastreo en Tiempo Real</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=TU_API_KEY&libraries=drawing,geometry"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Rastreo del Collar</h1>
+        <div id="map"></div>
+        <div class="controls">
+            <button id="btnGeofence">Dibujar Zona Segura</button>
+            <div id="alerts"></div>
+        </div>
+    </div>
+    <script src="/js/tracking.js"></script>
+    <script src="/js/geofencing.js"></script>
+</body>
+</html>
