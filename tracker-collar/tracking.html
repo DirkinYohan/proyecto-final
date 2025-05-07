@@ -2,11 +2,35 @@
 <html>
 <head>
     <title>Rastreo en Tiempo Real</title>
+    <!-- VERIFICACIÓN DE AUTENTICACIÓN (Agregado aquí) -->
+    <script>
+        if (new URLSearchParams(window.location.search).get('auth') !== 'true') {
+            window.location.href = '/';
+        }
+    </script>
+    
     <link rel="stylesheet" href="/css/styles.css">
     <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDomLxo3pu9poi4usAYON2gJn9ALjczrOA&libraries=drawing,geometry"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDomLxo3pu9poi4usAYON2gJn9ALjczrOA&libraries=drawing,geometry&callback=initMap" async defer></script>
+    <style>
+        #map {
+            height: 70vh;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+        .controls {
+            margin-top: 15px;
+        }
+        .access-denied {
+            color: red;
+            text-align: center;
+            padding: 50px;
+            font-size: 1.5em;
+        }
+    </style>
 </head>
 <body>
+    <!-- Contenido solo visible si pasó la verificación -->
     <div class="container">
         <h1>Rastreo del Collar</h1>
         <div id="map"></div>
@@ -15,6 +39,37 @@
             <div id="alerts"></div>
         </div>
     </div>
+
+    <script>
+        // Inicialización básica del mapa
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 1.200825, lng: -77.280979 },
+                zoom: 15,
+                streetViewControl: false
+            });
+
+            // Marcador inicial
+            const marker = new google.maps.Marker({
+                position: { lat: 1.200825, lng: -77.280979 },
+                map: map,
+                title: 'Collar1'
+            });
+
+            console.log('Mapa inicializado correctamente');
+        }
+
+        // Manejo de errores de API
+        window.gm_authFailure = function() {
+            document.getElementById('map').innerHTML = 
+                '<div class="access-denied">' +
+                'ERROR: Problema con la API de Google Maps. Verifica tu API Key' +
+                '</div>';
+            console.error('Error en la API de Google Maps');
+        };
+    </script>
+    
+    <!-- Scripts adicionales -->
     <script src="/js/tracking.js"></script>
     <script src="/js/geofencing.js"></script>
 </body>

@@ -1,41 +1,45 @@
-require('dotenv').config();
 const express = require('express');
 const WebSocket = require('ws');
 const path = require('path');
+const http = require('http'); // Agregamos esto
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8081;
 
-// Middleware
+// Configuración importante
 app.use(express.static(path.join(__dirname, '../')));
 app.use(express.json());
 
-// Rutas
-app.use('/auth', require('./routes/auth'));
-app.use('/api', require('./routes/tracking'));
-
-// Servir archivos HTML
+// Ruta principal que sirve tu HTML
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../login.html'));
 });
 
-// Iniciar servidor
-const server = app.listen(PORT, () => {
-    console.log(`Servidor en http://localhost:${PORT}`);
+app.get('/tracking.html', (req, res) => {
+    if (req.query.auth !== 'true') {  // Verificación más estricta
+        return res.redirect('/');
+    }
+    res.sendFile(path.join(__dirname, '../tracking.html'));
 });
 
-// WebSocket
+// Creamos servidor HTTP para WebSocket
+const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const clients = new Map();
 
+// Manejador de conexiones WebSocket
+const clients = new Map();
 wss.on('connection', (ws) => {
-    ws.on('message', (message) => {
-        const data = JSON.parse(message);
-        if (data.type === 'register') {
-            clients.set(data.deviceId, ws);
-        }
+    const id = Date.now();
+    clients.set(id, ws);
+    
+    ws.on('close', () => {
+        clients.delete(id);
     });
 });
 
-// Para uso en otras partes
-module.exports = { wss, clients };
+// Iniciamos el servidor
+server.listen(PORT, () => {
+    console.log(`Servidor en http://localhost:${PORT}`);
+});
+
+module.exports = { app, server, clients };

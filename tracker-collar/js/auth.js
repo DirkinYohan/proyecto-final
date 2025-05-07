@@ -1,20 +1,14 @@
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const response = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            deviceId: document.getElementById('deviceId').value,
-            password: document.getElementById('password').value
-        })
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-        window.location.href = '/tracking.html';
+    const deviceId = document.getElementById('deviceId').value;
+    const password = document.getElementById('password').value;
+
+    // Validación básica - CAMBIA ESTO POR TU LÓGICA REAL
+    if (deviceId === "collar1" && password === "1234567") {
+        // Redirige con parámetro de autenticación
+        window.location.href = '/tracking.html?auth=true';
     } else {
-        alert('Credenciales incorrectas');
+        document.getElementById('errorMsg').style.display = 'block';
     }
 });
